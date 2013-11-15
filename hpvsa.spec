@@ -3,7 +3,8 @@
 %bcond_without	dist_kernel	# allow non-distribution kernel
 %bcond_with	verbose		# verbose build (V=1)
 
-%define	basever			3.8.0
+%define	basever	3.8.0
+%define	debrel	33.48
 %define	localversion	33-generic
 %define	localver_str	%(echo %{localversion} | tr - _)
 # binary driver. redefine macros
@@ -14,7 +15,7 @@
 %define	_kernel_ver %{basever}-%{localversion}
 %define	_kernel_ver_str %(echo %{_kernel_ver} | tr - _)
 
-%define		rel	0.2
+%define		rel	0.3
 %define		pname	hpvsa
 Summary:	HP storage controller support
 Name:		%{pname}%{_alt_kernel}
@@ -25,9 +26,12 @@ Group:		Base/Kernel
 Source0:	http://ppa.launchpad.net/hp-iss-team/hpvsa-update/ubuntu/pool/main/h/hpvsa/hpvsa_%{version}-0~12~ubuntu13.04.1.tar.gz
 # NoSource0-md5:	1699424136da8b4098c9589f5494e477
 NoSource:	0
-Source1:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-%{_kernel_ver}_%{basever}-33.48_amd64.deb
+Source1:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
 # Source1-md5:	83b139f34b6c17e2652b6a56b26e39f4
 NoSource:	1
+Source2:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-extra-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
+# Source2-md5:	cc2e27616d646cff5967b27d330660ad
+NoSource:	2
 URL:		https://launchpad.net/~hp-iss-team/+archive/hpvsa-update
 BuildRequires:	rpmbuild(macros) >= 1.379
 ExclusiveArch:	%{x8664}
@@ -93,13 +97,18 @@ mv recipe-*/* .
 ar xf %{SOURCE1}
 tar xf data.tar.bz2
 
+ar xf %{SOURCE2}
+tar xf data.tar.bz2
+
 # hardlink, and pld doesn't use that dir
-rm -r lib/modules/%{_kernel_ver}/initrd
+rm -rv lib/modules/%{_kernel_ver}/initrd
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/boot,/lib/{modules,firmware}}
+install -d $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/kernel/scsi
+cp -p hpvsa.ko $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/kernel/scsi
 
+install -d $RPM_BUILD_ROOT{/boot,/lib/{modules,firmware}}
 # copy base kernel
 cp -a boot/* $RPM_BUILD_ROOT/boot
 cp -a lib/modules/* $RPM_BUILD_ROOT/lib/modules
@@ -118,9 +127,6 @@ for a in \
 ; do
 	> $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/modules.$a
 done
-
-install -d $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/kernel/scsi
-cp -p hpvsa.ko $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/kernel/scsi
 
 %clean
 rm -rf $RPM_BUILD_ROOT
