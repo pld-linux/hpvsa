@@ -1,6 +1,7 @@
 #
 # Conditional build:
 %bcond_without	dist_kernel	# allow non-distribution kernel
+%bcond_without	kernel		# don't build kernel package
 %bcond_with	verbose		# verbose build (V=1)
 
 %define	basever	3.8.0
@@ -93,6 +94,7 @@ Ten pakiet zawiera moduł jądra Linuksa.
 %setup -qc
 mv recipe-*/* .
 
+%if %{with kernel}
 # kernel itself
 ar xf %{SOURCE1}
 tar xf data.tar.bz2
@@ -102,12 +104,14 @@ tar xf data.tar.bz2
 
 # hardlink, and pld doesn't use that dir
 rm -rv lib/modules/%{_kernel_ver}/initrd
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/kernel/scsi
 cp -p hpvsa.ko $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/kernel/scsi
 
+%if %{with kernel}
 install -d $RPM_BUILD_ROOT{/boot,/lib/{modules,firmware}}
 # copy base kernel
 cp -a boot/* $RPM_BUILD_ROOT/boot
@@ -127,6 +131,8 @@ for a in \
 ; do
 	> $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/modules.$a
 done
+%endif
+
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -206,6 +212,7 @@ fi
 %postun	-n kernel%{_alt_kernel}-scsi-hpvsa
 %depmod %{_kernel_ver}
 
+%if %{with kernel}
 %files -n kernel%{_alt_kernel}
 %defattr(644,root,root,755)
 /boot/System.map-%{_kernel_ver}
@@ -233,6 +240,7 @@ fi
 %ghost /lib/modules/%{_kernel_ver}/modules.softdep
 %ghost /lib/modules/%{_kernel_ver}/modules.symbols
 %ghost /lib/modules/%{_kernel_ver}/modules.symbols.bin
+%endif
 
 %files -n kernel%{_alt_kernel}-scsi-hpvsa
 %defattr(644,root,root,755)
