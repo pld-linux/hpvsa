@@ -63,6 +63,7 @@ Suggests:	crda
 Suggests:	dracut
 Suggests:	keyutils
 Suggests:	linux-firmware
+AutoReqProv:	no
 
 %description -n kernel%{_alt_kernel}
 This package contains the Linux kernel that is used to boot and run
