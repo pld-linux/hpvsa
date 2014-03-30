@@ -5,8 +5,8 @@
 %bcond_with	verbose		# verbose build (V=1)
 
 %define	basever	3.8.0
-%define	debrel	33.48
-%define	localversion	33-generic
+%define	debrel	35.50
+%define	localversion	35-generic
 %define	localver_str	%(echo %{localversion} | tr - _)
 # binary driver. redefine macros
 %define	alt_kernel	ubuntu
@@ -16,7 +16,7 @@
 %define	_kernel_ver %{basever}-%{localversion}
 %define	_kernel_ver_str %(echo %{_kernel_ver} | tr - _)
 
-%define		rel	0.3
+%define		rel	1
 %define		pname	hpvsa
 Summary:	HP storage controller support
 Name:		%{pname}%{_alt_kernel}
@@ -24,14 +24,14 @@ Version:	1.2.8
 Release:	%{rel}
 License:	HP Proprietary
 Group:		Base/Kernel
-Source0:	http://ppa.launchpad.net/hp-iss-team/hpvsa-update/ubuntu/pool/main/h/hpvsa/hpvsa_%{version}-0~12~ubuntu13.04.1.tar.gz
-# NoSource0-md5:	1699424136da8b4098c9589f5494e477
+Source0:	http://ppa.launchpad.net/hp-iss-team/hpvsa-update/ubuntu/pool/main/h/hpvsa/%{pname}_%{version}-0~14~ubuntu13.04.1.tar.gz
+# NoSource0-md5:	487949f12174bacc04f96e8d108d5f33
 NoSource:	0
 Source1:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
-# Source1-md5:	83b139f34b6c17e2652b6a56b26e39f4
+# NoSource1-md5:	c7f6aeb22b3b267254d517b048e21d06
 NoSource:	1
 Source2:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-extra-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
-# Source2-md5:	cc2e27616d646cff5967b27d330660ad
+# NoSource2-md5:	205b604b2e6158921ec6806c331bfb02
 NoSource:	2
 URL:		https://launchpad.net/~hp-iss-team/+archive/hpvsa-update
 BuildRequires:	rpmbuild(macros) >= 1.379
