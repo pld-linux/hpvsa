@@ -14,7 +14,8 @@
 %define	alt_kernel	ubuntu
 %define	kernel_name kernel%{_alt_kernel}
 %define	kernel_version	%{basever}-%{localver_str}
-%define	kernel_release	%{_kernel_ver}
+%define	_kernel_ver	%{_kernel_ver}
+%define	_kernel_basever %{basever}-%{basedebrel}
 %define	_kernel_ver %{basever}-%{localversion}
 %define	_kernel_ver_str %(echo %{_kernel_ver} | tr - _)
 
@@ -35,12 +36,25 @@ NoSource:	1
 Source2:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-extra-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
 # NoSource2-md5:	fe9dd9951ad3b1b8de3d650bb33d4e8f
 NoSource:	2
+Source3:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-headers-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
+# NoSource3-md5:	b83bd34df0107b8b208904be64ad3def
+NoSource:	3
+Source4:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-headers-%{_kernel_basever}_%{basever}-%{debrel}_all.deb
+# NoSource4-md5:	18fa458ad9dc6d2414f8f373f91ed45c
+NoSource:	4
 URL:		https://launchpad.net/~hp-iss-team/+archive/hpvsa-update
 BuildRequires:	rpmbuild(macros) >= 1.379
+BuildRequires:	tar >= 1:1.22
+BuildRequires:	xz
 ExclusiveArch:	%{x8664}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		initrd_dir	/boot
+# define this to '-%{basever}' for longterm branch
+%define		versuffix	%{nil}
+
+%define		_kernelbasesrcdir	/usr/src/linux-headers%{versuffix}-%{basever}-%{basedebrel}
+%define		_kernelsrcdir	/usr/src/linux-headers%{versuffix}-%{basever}-%{localversion}
 
 # nothing to be placed to debuginfo package
 %define		_enable_debug_packages	0
@@ -72,6 +86,50 @@ This package contains the Linux kernel that is used to boot and run
 your system. It contains few device drivers for specific hardware.
 Most hardware is instead supported by modules loaded after booting.
 
+%package -n kernel%{_alt_kernel}-headers
+Summary:	Header files for the Linux kernel
+Summary(de.UTF-8):	Header Dateien für den Linux-Kernel
+Summary(pl.UTF-8):	Pliki nagłówkowe jądra Linuksa
+Group:		Development/Building
+Provides:	%{name}-headers(netfilter) = 20070806
+AutoReqProv:	no
+
+%description -n kernel%{_alt_kernel}-headers
+These are the C header files for the Linux kernel, which define
+structures and constants that are needed when rebuilding the kernel or
+building kernel modules.
+
+%description -n kernel%{_alt_kernel}-headers -l de.UTF-8
+Dies sind die C Header Dateien für den Linux-Kernel, die definierte
+Strukturen und Konstante beinhalten, die beim rekompilieren des
+Kernels oder bei Kernel Modul kompilationen gebraucht werden.
+
+%description -n kernel%{_alt_kernel}-headers -l pl.UTF-8
+Pakiet zawiera pliki nagłówkowe jądra, niezbędne do rekompilacji jądra
+oraz budowania modułów jądra.
+
+%package -n kernel%{_alt_kernel}-module-build
+Summary:	Development files for building kernel modules
+Summary(de.UTF-8):	Development Dateien die beim Kernel Modul kompilationen gebraucht werden
+Summary(pl.UTF-8):	Pliki służące do budowania modułów jądra
+Group:		Development/Building
+Requires:	kernel%{_alt_kernel}-headers = %{version}-%{release}
+Requires:	make
+Conflicts:	rpmbuild(macros) < 1.652
+AutoReqProv:	no
+
+%description -n kernel%{_alt_kernel}-module-build
+Development files from kernel source tree needed to build Linux kernel
+modules from external packages.
+
+%description -n kernel%{_alt_kernel}-module-build -l de.UTF-8
+Development Dateien des Linux-Kernels die beim kompilieren externer
+Kernel Module gebraucht werden.
+
+%description -n kernel%{_alt_kernel}-module-build -l pl.UTF-8
+Pliki ze drzewa źródeł jądra potrzebne do budowania modułów jądra
+Linuksa z zewnętrznych pakietów.
+
 %package -n kernel%{_alt_kernel}-scsi-hpvsa
 Summary:	Linux driver for hpvsa
 Summary(pl.UTF-8):	Sterownik dla Linuksa do hpvsa
@@ -100,10 +158,16 @@ mv hp-iss/* .
 %if %{with kernel}
 # kernel itself
 ar xf %{SOURCE1}
-tar xf data.tar.bz2
+tar xf data.tar.bz2 && rm data.tar.bz2
 
 ar xf %{SOURCE2}
-tar xf data.tar.bz2
+tar xf data.tar.bz2 && rm data.tar.bz2
+
+ar xf %{SOURCE3}
+tar xf data.tar.xz && rm data.tar.xz
+
+ar xf %{SOURCE4}
+tar xf data.tar.xz && rm data.tar.xz
 
 # hardlink, and pld doesn't use that dir
 rm -rv lib/modules/%{_kernel_ver}/initrd
@@ -134,8 +198,15 @@ for a in \
 ; do
 	> $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/modules.$a
 done
-%endif
 
+# rpm obeys filelinkto checks for ghosted symlinks, convert to files
+rm -f $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/{build,source}
+touch $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/{build,source}
+
+# install headers
+install -d $RPM_BUILD_ROOT%{_usrsrc}
+cp -a usr/src/* $RPM_BUILD_ROOT%{_usrsrc}
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -209,6 +280,27 @@ if [ -x /sbin/efi-boot-update ]; then
 	/sbin/efi-boot-update --auto || :
 fi
 
+%post -n kernel%{_alt_kernel}-headers
+ln -snf %{basename:%{_kernelsrcdir}} %{_prefix}/src/linux%{versuffix}%{_alt_kernel}
+
+%postun -n kernel%{_alt_kernel}-headers
+if [ "$1" = "0" ]; then
+	if [ -L %{_prefix}/src/linux%{versuffix}%{_alt_kernel} ]; then
+		if [ "$(readlink %{_prefix}/src/linux%{versuffix}%{_alt_kernel})" = "linux%{versuffix}%{_alt_kernel}-%{version}" ]; then
+			rm -f %{_prefix}/src/linux%{versuffix}%{_alt_kernel}
+		fi
+	fi
+fi
+
+%triggerin -n kernel%{_alt_kernel}-module-build -- kernel%{_alt_kernel} = %{version}-%{release}
+ln -sfn %{_kernelsrcdir} /lib/modules/%{_kernel_ver}/build
+ln -sfn %{_kernelsrcdir} /lib/modules/%{_kernel_ver}/source
+
+%triggerun -n kernel%{_alt_kernel}-module-build -- kernel%{_alt_kernel} = %{version}-%{release}
+if [ "$1" = 0 ]; then
+	rm -f /lib/modules/%{_kernel_ver}/{build,source}
+fi
+
 %post	-n kernel%{_alt_kernel}-scsi-hpvsa
 %depmod %{_kernel_ver}
 
@@ -244,6 +336,18 @@ fi
 %ghost /lib/modules/%{_kernel_ver}/modules.softdep
 %ghost /lib/modules/%{_kernel_ver}/modules.symbols
 %ghost /lib/modules/%{_kernel_ver}/modules.symbols.bin
+
+# symlinks pointing to kernelsrcdir
+%ghost /lib/modules/%{_kernel_ver}/build
+%ghost /lib/modules/%{_kernel_ver}/source
+
+%files -n kernel%{_alt_kernel}-headers
+%defattr(644,root,root,755)
+%{_kernelsrcdir}
+
+%files -n kernel%{_alt_kernel}-module-build
+%defattr(644,root,root,755)
+%{_kernelbasesrcdir}
 %endif
 
 %files -n kernel%{_alt_kernel}-scsi-hpvsa
