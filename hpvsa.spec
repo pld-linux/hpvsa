@@ -4,10 +4,12 @@
 %bcond_without	kernel		# don't build kernel package
 %bcond_with	verbose		# verbose build (V=1)
 
-%define	basever	3.8.0
-%define	debrel	35.50
-%define	localversion	35-generic
+%define	basever	3.13.0
+%define	basedebrel	32
+%define	debrel	%{basedebrel}.57
+%define	localversion	%{basedebrel}-generic
 %define	localver_str	%(echo %{localversion} | tr - _)
+
 # binary driver. redefine macros
 %define	alt_kernel	ubuntu
 %define	kernel_name kernel%{_alt_kernel}
@@ -20,18 +22,18 @@
 %define		pname	hpvsa
 Summary:	HP storage controller support
 Name:		%{pname}%{_alt_kernel}
-Version:	1.2.8
+Version:	1.2.10
 Release:	%{rel}
 License:	HP Proprietary
 Group:		Base/Kernel
-Source0:	http://ppa.launchpad.net/hp-iss-team/hpvsa-update/ubuntu/pool/main/h/hpvsa/%{pname}_%{version}-0~14~ubuntu13.04.1.tar.gz
-# NoSource0-md5:	487949f12174bacc04f96e8d108d5f33
+Source0:	http://ppa.launchpad.net/hp-iss-team/hpvsa-update/ubuntu/pool/main/h/hpvsa/%{pname}_%{version}-121ubuntu18.tar.gz
+# NoSource0-md5:	aa9d593d461d05e503b781c54174d777
 NoSource:	0
 Source1:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
-# NoSource1-md5:	c7f6aeb22b3b267254d517b048e21d06
+# NoSource1-md5:	51f5f700d35c4c05a6d195195a9d9ff1
 NoSource:	1
 Source2:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-extra-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
-# NoSource2-md5:	205b604b2e6158921ec6806c331bfb02
+# NoSource2-md5:	fe9dd9951ad3b1b8de3d650bb33d4e8f
 NoSource:	2
 URL:		https://launchpad.net/~hp-iss-team/+archive/hpvsa-update
 BuildRequires:	rpmbuild(macros) >= 1.379
@@ -93,7 +95,7 @@ Ten pakiet zawiera moduł jądra Linuksa.
 
 %prep
 %setup -qc
-mv recipe-*/* .
+mv hp-iss/* .
 
 %if %{with kernel}
 # kernel itself
@@ -226,6 +228,7 @@ fi
 /lib/firmware/%{_kernel_ver}
 %dir /lib/modules/%{_kernel_ver}
 /lib/modules/%{_kernel_ver}/kernel
+/lib/modules/%{_kernel_ver}/vdso
 %exclude /lib/modules/%{_kernel_ver}/kernel/scsi/*.ko*
 
 /lib/modules/%{_kernel_ver}/modules.builtin
