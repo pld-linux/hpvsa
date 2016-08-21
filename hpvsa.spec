@@ -68,6 +68,7 @@ Driver for HP Smart Array B120i/B320i SATA RAID controller.
 Summary:	The Linux kernel (the core of the Linux operating system)
 Version:	%{basever}
 Release:	%{localver_str}
+Epoch:		3
 License:	GPL v2
 Group:		Base/Kernel
 Requires(post):	coreutils
@@ -94,8 +95,8 @@ Summary(de.UTF-8):	Header Dateien für den Linux-Kernel
 Summary(pl.UTF-8):	Pliki nagłówkowe jądra Linuksa
 Version:	%{basever}
 Release:	%{localver_str}
+Epoch:		3
 Group:		Development/Building
-Provides:	%{name}-headers(netfilter) = 20070806
 AutoReqProv:	no
 
 %description -n kernel%{_alt_kernel}-headers
@@ -118,8 +119,9 @@ Summary(de.UTF-8):	Development Dateien die beim Kernel Modul kompilationen gebra
 Summary(pl.UTF-8):	Pliki służące do budowania modułów jądra
 Version:	%{basever}
 Release:	%{localver_str}
+Epoch:		3
 Group:		Development/Building
-Requires:	kernel%{_alt_kernel}-headers = %{basever}-%{localver_str}
+Requires:	kernel%{_alt_kernel}-headers = %{epoch}:%{basever}-%{localver_str}
 Requires:	make
 Conflicts:	rpmbuild(macros) < 1.652
 AutoReqProv:	no
@@ -141,6 +143,7 @@ Summary:	Linux driver for hpvsa
 Summary(pl.UTF-8):	Sterownik dla Linuksa do hpvsa
 Version:	%{basever}
 Release:	%{rel}@%{_kernel_ver_str}
+Epoch:		3
 Group:		Base/Kernel
 Requires(post,postun):	/sbin/depmod
 %if %{with dist_kernel}
