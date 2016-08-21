@@ -224,6 +224,10 @@ cp -a usr/src/* $RPM_BUILD_ROOT%{_usrsrc}
 
 # gcc5 hack
 ln -s compiler-gcc4.h $RPM_BUILD_ROOT%{_kernelsrcdir}/include/linux/compiler-gcc5.h
+
+# version.h location changed in 3.7, but a lot of external modules don't know about it
+# add a compatibility symlink
+ln -s ../generated/uapi/linux/version.h $RPM_BUILD_ROOT%{_kernelsrcdir}/include/linux/version.h
 %endif
 
 %clean
