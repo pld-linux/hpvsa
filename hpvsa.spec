@@ -19,16 +19,18 @@
 %define	_kernel_ver %{basever}-%{localversion}
 %define	_kernel_ver_str %(echo %{_kernel_ver} | tr - _)
 
+# lynx -dump http://archive.ubuntu.com/ubuntu/pool/main/l/linux/ | grep 3.13.0-95 | grep -vE 'i386|diff|dsc|\.udeb|lowlatency|doc|source'
+
 %define		rel	1
 %define		pname	hpvsa
 Summary:	HP storage controller support
 Name:		%{pname}%{_alt_kernel}
-Version:	1.2.10
+Version:	1.2.12
 Release:	%{rel}
 License:	HP Proprietary
 Group:		Base/Kernel
-Source0:	http://ppa.launchpad.net/hp-iss-team/hpvsa-update/ubuntu/pool/main/h/hpvsa/%{pname}_%{version}-121ubuntu18.tar.gz
-# NoSource0-md5:	aa9d593d461d05e503b781c54174d777
+Source0:	http://ppa.launchpad.net/hp-iss-team/hp-storage/ubuntu/pool/main/h/hpvsa/%{pname}_%{version}-115-3.13ubuntu2.tar.gz
+# NoSource0-md5:	7c6ee33ed10baf0ca61c3fa7353aad4e
 NoSource:	0
 Source1:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-image-%{_kernel_ver}_%{basever}-%{debrel}_amd64.deb
 # NoSource1-md5:	51f5f700d35c4c05a6d195195a9d9ff1
@@ -42,7 +44,7 @@ NoSource:	3
 Source4:	http://archive.ubuntu.com/ubuntu/pool/main/l/linux/linux-headers-%{_kernel_basever}_%{basever}-%{debrel}_all.deb
 # NoSource4-md5:	18fa458ad9dc6d2414f8f373f91ed45c
 NoSource:	4
-URL:		https://launchpad.net/~hp-iss-team/+archive/hpvsa-update
+URL:		https://launchpad.net/~hp-iss-team/+archive/ubuntu/hp-storage
 BuildRequires:	rpmbuild(macros) >= 1.379
 BuildRequires:	tar >= 1:1.22
 BuildRequires:	xz
@@ -90,6 +92,8 @@ Most hardware is instead supported by modules loaded after booting.
 Summary:	Header files for the Linux kernel
 Summary(de.UTF-8):	Header Dateien für den Linux-Kernel
 Summary(pl.UTF-8):	Pliki nagłówkowe jądra Linuksa
+Version:	%{basever}
+Release:	%{localver_str}
 Group:		Development/Building
 Provides:	%{name}-headers(netfilter) = 20070806
 AutoReqProv:	no
@@ -112,8 +116,10 @@ oraz budowania modułów jądra.
 Summary:	Development files for building kernel modules
 Summary(de.UTF-8):	Development Dateien die beim Kernel Modul kompilationen gebraucht werden
 Summary(pl.UTF-8):	Pliki służące do budowania modułów jądra
+Version:	%{basever}
+Release:	%{localver_str}
 Group:		Development/Building
-Requires:	kernel%{_alt_kernel}-headers = %{version}-%{release}
+Requires:	kernel%{_alt_kernel}-headers = %{basever}-%{localver_str}
 Requires:	make
 Conflicts:	rpmbuild(macros) < 1.652
 AutoReqProv:	no
@@ -133,6 +139,7 @@ Linuksa z zewnętrznych pakietów.
 %package -n kernel%{_alt_kernel}-scsi-hpvsa
 Summary:	Linux driver for hpvsa
 Summary(pl.UTF-8):	Sterownik dla Linuksa do hpvsa
+Version:	%{basever}
 Release:	%{rel}@%{_kernel_ver_str}
 Group:		Base/Kernel
 Requires(post,postun):	/sbin/depmod
@@ -172,6 +179,11 @@ tar xf data.tar.xz && rm data.tar.xz
 # hardlink, and pld doesn't use that dir
 rm -rv lib/modules/%{_kernel_ver}/initrd
 %endif
+
+%build
+v=$(modinfo -F vermagic ./hpvsa.ko | awk '{print $1}')
+# 3.13.0-32-generic
+test "$v" = "%{basever}-%{localversion}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
