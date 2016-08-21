@@ -361,10 +361,12 @@ fi
 
 %files -n kernel%{_alt_kernel}-headers
 %defattr(644,root,root,755)
+%defattr(-,root,root,-)
 %{_kernelsrcdir}
 
 %files -n kernel%{_alt_kernel}-module-build
 %defattr(644,root,root,755)
+%defattr(-,root,root,-)
 %{_kernelbasesrcdir}
 %endif
 
