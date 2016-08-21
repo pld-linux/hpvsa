@@ -221,6 +221,9 @@ touch $RPM_BUILD_ROOT/lib/modules/%{_kernel_ver}/{build,source}
 # install headers
 install -d $RPM_BUILD_ROOT%{_usrsrc}
 cp -a usr/src/* $RPM_BUILD_ROOT%{_usrsrc}
+
+# gcc5 hack
+ln -s compiler-gcc4.h $RPM_BUILD_ROOT%{_kernelsrcdir}/include/linux/compiler-gcc5.h
 %endif
 
 %clean
